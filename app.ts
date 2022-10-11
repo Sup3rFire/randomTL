@@ -14,7 +14,7 @@ async function getReplayIds(userId: string): Promise<string[]> {
 
 const idList = Deno.readTextFileSync("players.csv")
   .split("\n")
-  .map((player) => player.split(",")[0]);
+  .map((player) => player.split(","));
 idList.pop();
 
 let randomId = getRandomValue(idList);
@@ -23,17 +23,20 @@ let [prevIds, replayIds] = await Promise.all([
   Deno.readTextFile("./previous.csv")
     .then((file) => file.split("\n"))
     .catch(() => [""]),
-  getReplayIds(randomId),
+  getReplayIds(randomId[0]),
 ]);
 
 prevIds.pop();
 
-replayIds = replayIds.filter((id) => !prevIds.includes(`${randomId},${id}`));
+replayIds = replayIds.filter((id) => !prevIds.includes(`${randomId[0]},${id}`));
 
 while (replayIds.length <= 0) {
+  console.warn(
+    `All replays from ${randomId[1]} (${randomId[0]}) already used up.`
+  );
   randomId = getRandomValue(idList);
-  replayIds = await getReplayIds(randomId).then((replayIds) =>
-    replayIds.filter((id) => !prevIds.includes(`${randomId},${id}`))
+  replayIds = await getReplayIds(randomId[0]).then((replayIds) =>
+    replayIds.filter((id) => !prevIds.includes(`${randomId[0]},${id}`))
   );
 }
 
@@ -49,12 +52,12 @@ let data = (
 ).game;
 
 const username = data.endcontext.filter(
-  (x: { user: { username: string; _id: string } }) => x.user._id == randomId
+  (x: { user: { username: string; _id: string } }) => x.user._id == randomId[0]
 )[0].user.username;
 
 data = JSON.stringify(data).replaceAll(username, "serichii");
 
 Deno.writeTextFileSync("./replay.ttrm", data);
-Deno.writeTextFileSync("./previous.csv", `${randomId},${replayId}\n`, {
+Deno.writeTextFileSync("./previous.csv", `${randomId[0]},${replayId}\n`, {
   append: true,
 });
