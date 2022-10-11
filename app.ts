@@ -1,6 +1,7 @@
 import { config } from "https://deno.land/x/dotenv/mod.ts";
 
 function getRandomValue<T>(array: T[]): T {
+  if (array.length <= 0) throw new Error("Array doesn't have any values.");
   return array[Math.floor(Math.random() * array.length)];
 }
 
@@ -12,7 +13,7 @@ async function getReplayIds(userId: string): Promise<string[]> {
   ).data.records.map((record: { replayid: string }) => record.replayid);
 }
 
-const idList = Deno.readTextFileSync("players.csv")
+const idList = Deno.readTextFileSync("./players.csv")
   .split("\n")
   .map((player) => player.split(","));
 if (idList[idList.length - 1][0] == "") idList.pop();
@@ -33,6 +34,11 @@ while (replayIds.length <= 0) {
   console.warn(
     `All replays from ${randomId[1]} (${randomId[0]}) already used up.`
   );
+  const index = idList.indexOf(randomId);
+  if (index > -1) {
+    idList.splice(index, 1);
+  }
+
   randomId = getRandomValue(idList);
   replayIds = await getReplayIds(randomId[0]).then((replayIds) =>
     replayIds.filter((id) => !prevIds.includes(`${randomId[0]},${id}`))
