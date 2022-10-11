@@ -6,15 +6,16 @@ function getRandomValue<T>(array: T[]): T {
 
 async function getReplayIds(userId: string): Promise<string[]> {
   return (
-    await (
-      await fetch(`https://ch.tetr.io/api/streams/league_userrecent_${userId}`)
-    ).json()
+    await fetch(
+      `https://ch.tetr.io/api/streams/league_userrecent_${userId}`
+    ).then((req) => req.json())
   ).data.records.map((record: { replayid: string }) => record.replayid);
 }
 
 const idList = Deno.readTextFileSync("players.csv")
   .split("\n")
   .map((player) => player.split(",")[0]);
+idList.pop();
 
 let randomId = getRandomValue(idList);
 
