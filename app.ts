@@ -15,7 +15,7 @@ async function getReplayIds(userId: string): Promise<string[]> {
 const idList = Deno.readTextFileSync("players.csv")
   .split("\n")
   .map((player) => player.split(","));
-idList.pop();
+if (idList[idList.length - 1][0] == "") idList.pop();
 
 let randomId = getRandomValue(idList);
 
@@ -25,8 +25,7 @@ let [prevIds, replayIds] = await Promise.all([
     .catch(() => [""]),
   getReplayIds(randomId[0]),
 ]);
-
-prevIds.pop();
+if (prevIds[prevIds.length - 1] == "") prevIds.pop();
 
 replayIds = replayIds.filter((id) => !prevIds.includes(`${randomId[0]},${id}`));
 
